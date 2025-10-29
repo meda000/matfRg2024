@@ -2,8 +2,8 @@
 // Created by matfrg on 10/28/25.
 //
 #include "MainController.hpp"
-
-#include "../../engine/libs/assimp/code/AssetLib/3MF/3MFXmlTags.h"
+#include "StatueController.hpp"
+//#include "../../engine/libs/assimp/code/AssetLib/3MF/3MFXmlTags.h"
 #include "GuiController.hpp"
 #include "engine/graphics/OpenGL.hpp"
 #include "engine/platform/PlatformController.hpp"
@@ -36,6 +36,9 @@ void MainController::initialize() {
     auto graphics = engine::core::Controller::get<engine::graphics::GraphicsController>();
     auto camera = graphics->camera();
     camera->Position = glm::vec3(-9.4f,3.1f,-4.4f);
+
+    auto statueController = engine::core::Controller::get<StatueController>();
+    statueController->initialize();
 }
 
 
@@ -120,6 +123,8 @@ void MainController::draw_skybox() {
     }
 
 void MainController::draw_statue() {
+        auto statueController = engine::core::Controller::get<StatueController>();
+        bool spotlightEnabled = statueController->is_spotlight_enabled();
         if(!spotlightEnabled) {
            return;
         }
@@ -137,8 +142,8 @@ void MainController::draw_statue() {
         shader->set_mat4("view", graphics->camera()->view_matrix());
 
         glm::mat4 modelStatua = glm::mat4(1.0f);
-        modelStatua =glm::translate(modelStatua, glm::vec3(-5.0f + statueOffset,0.3f,-4.5f));
-        //modelLampa = glm::rotate(modelLampa, glm::radians(-90.0f), glm::vec3(1.0f,0.0f,0.0f));
+        //modelStatua =glm::translate(modelStatua, glm::vec3(-5.0f + statueOffset,0.3f,-4.5f));
+        modelStatua =glm::translate(modelStatua, glm::vec3(-5.0f + statueController->get_statue_offset(),0.3f,-4.5f));
         modelStatua = glm::scale(modelStatua, glm::vec3(0.2f));
         shader->set_mat4("model", modelStatua);
         statuaModel->draw(shader);
@@ -170,18 +175,18 @@ void MainController::update_camera() {
        }
 
     }
-void MainController::update_spotlight() {
-        auto platform = engine::core::Controller::get<engine::platform::PlatformController>();
-        if(platform->key(engine::platform::KeyId::KEY_L).state() == engine::platform::Key::State::JustPressed) {
-            spotlightEnabled = !spotlightEnabled;
-
-            if(!spotlightEnabled) {
-                statueOffset = 0.0f;
-                statueMove = false;
-                statueMoveTimer = 0.0f;
-            }
-        }
-    }
+// void MainController::update_spotlight() {
+//         auto platform = engine::core::Controller::get<engine::platform::PlatformController>();
+//         if(platform->key(engine::platform::KeyId::KEY_L).state() == engine::platform::Key::State::JustPressed) {
+//             spotlightEnabled = !spotlightEnabled;
+//
+//             if(!spotlightEnabled) {
+//                 statueOffset = 0.0f;
+//                 statueMove = false;
+//                 statueMoveTimer = 0.0f;
+//             }
+//         }
+//     }
 void MainController::update_spotlight_color() {
         auto platform = engine::core::Controller::get<engine::platform::PlatformController>();
         if(platform->key(engine::platform::KeyId::KEY_B).state() == engine::platform::Key::State::JustPressed) {
@@ -197,29 +202,29 @@ void MainController::update_spotlight_color() {
             spotlightRedComponentAmb = 0.2f;
             spotlightRedComponentDif = 0.2f;
         }
-        statueMove = true;
-        statueMoveTimer = 0.0f;
+        //statueMove = true;
+        //statueMoveTimer = 0.0f;
     }
     }
 
-void MainController::update_statue() {
-        if(statueMove) {
-            auto platform = engine::core::Controller::get<engine::platform::PlatformController>();
-            statueMoveTimer += platform->dt();
-
-            if(statueMoveTimer > 1.0f) {
-                statueOffset += 0.07f;
-                statueMove = false;
-            }
-        }
-    }
+//void MainController::update_statue() {
+    //    if(statueMove) {
+     //       auto platform = engine::core::Controller::get<engine::platform::PlatformController>();
+     //       statueMoveTimer += platform->dt();
+//
+   //         if(statueMoveTimer > 1.0f) {
+   //             statueOffset += 0.07f;
+   //             statueMove = false;
+    //        }
+  //      }
+   // }
 
 
 void MainController::update() {
         update_camera();
         update_spotlight_color();
-        update_spotlight();
-        update_statue();
+        //update_spotlight();
+        //update_statue();
     }
 
 
@@ -230,6 +235,7 @@ void MainController::setup_lighting() {
     auto resources = engine::core::Controller::get<engine::resources::ResourcesController>();
     auto graphics = engine::core::Controller::get<engine::graphics::GraphicsController>();
     auto camera = graphics->camera();
+    auto statueController = engine::core::Controller::get<StatueController>();
 
     engine::resources::Shader *modelShader = resources->shader("basic");
 
@@ -248,6 +254,9 @@ void MainController::setup_lighting() {
     modelShader->set_float("spotLight.constant", 1.0f);
     modelShader->set_float("spotLight.linear", 0.045f);
     modelShader->set_float("spotLight.quadratic", 0.0075f);
+
+    bool spotlightEnabled = statueController->is_spotlight_enabled();
+
     if(spotlightEnabled) {
         modelShader->set_vec3("spotLight.ambient", glm::vec3(spotlightRedComponentAmb,0.2f,spotlightBlueComponent));
         modelShader->set_vec3("spotLight.diffuse", glm::vec3(spotlightRedComponentDif,1.0f,spotlightBlueComponent));
