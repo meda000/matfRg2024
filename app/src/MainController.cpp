@@ -3,6 +3,7 @@
 //
 #include "MainController.hpp"
 
+#include "../../engine/libs/assimp/code/AssetLib/3MF/3MFXmlTags.h"
 #include "GuiController.hpp"
 #include "engine/graphics/OpenGL.hpp"
 #include "engine/platform/PlatformController.hpp"
@@ -53,6 +54,9 @@ void MainController::draw_island() {
        engine::resources::Shader *shader = resources->shader("basic");
 
        shader->use();
+
+    setup_lighting();
+
        shader->set_mat4("projection", graphics->projection_matrix());
        shader->set_mat4("view", graphics->camera()->view_matrix());
        glm::mat4 modelIsland = glm::mat4(1.0f);
@@ -71,6 +75,9 @@ void MainController::draw_tree() {
     engine::resources::Shader *shader = resources->shader("basic");
 
     shader->use();
+
+setup_lighting();
+
     shader->set_mat4("projection", graphics->projection_matrix());
     shader->set_mat4("view", graphics->camera()->view_matrix());
     glm::mat4 modelDrvo = glm::mat4(1.0f);
@@ -89,6 +96,9 @@ void MainController::draw_lamp() {
         engine::resources::Shader *shader = resources->shader("basic");
 
         shader->use();
+
+    setup_lighting();
+
     shader->set_mat4("projection", graphics->projection_matrix());
     shader->set_mat4("view", graphics->camera()->view_matrix());
 
@@ -98,6 +108,15 @@ void MainController::draw_lamp() {
     modelLampa = glm::scale(modelLampa, glm::vec3(0.5f));
     shader->set_mat4("model", modelLampa);
     lampModel->draw(shader);
+    }
+
+void MainController::draw_skybox() {
+        auto resources = engine::core::Controller::get<engine::resources::ResourcesController>();
+        auto skybox = resources->skybox("pozadina");
+        auto shader = resources->shader("skybox");
+        auto graphics = engine::core::Controller::get<engine::graphics::GraphicsController>();
+        graphics->draw_skybox(shader, skybox);
+
     }
 
 
@@ -125,20 +144,66 @@ void MainController::update_camera() {
        }
 
     }
+void MainController::update_spotlight() {
+        auto platform = engine::core::Controller::get<engine::platform::PlatformController>();
+        if(platform->key(engine::platform::KeyId::KEY_L).state() == engine::platform::Key::State::JustPressed) {
+            spotlightEnabled = !spotlightEnabled;
+        }
+    }
 
 
 void MainController::update() {
         update_camera();
+        update_spotlight();
     }
 
 
 void MainController::begin_draw() {
         engine::graphics::OpenGL::clear_buffers();
     }
+void MainController::setup_lighting() {
+    auto resources = engine::core::Controller::get<engine::resources::ResourcesController>();
+    auto graphics = engine::core::Controller::get<engine::graphics::GraphicsController>();
+    auto camera = graphics->camera();
+
+    engine::resources::Shader *modelShader = resources->shader("basic");
+
+    modelShader->use();
+
+    modelShader->set_vec3("dirLight.direction", glm::vec3(0.8f,-1.0f,1.0f));
+    modelShader->set_vec3("dirLight.ambient", glm::vec3(0.3f,0.3f,0.3f)*1.0f);
+    modelShader->set_vec3("dirLight.diffuse", glm::vec3(0.4f,0.4f,0.4f)*0.5f);
+    modelShader->set_vec3("dirLight.specular", glm::vec3(0.8f,0.3f,0.3f));
+
+    modelShader->set_vec3("spotLight.position", glm::vec3(-1.0f,6.0f,-4.0f));
+    modelShader->set_vec3("spotLight.direction", glm::vec3(-0.6f,-1.0f,0.0f));
+    modelShader->set_float("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+    modelShader->set_float("spotLight.outerCutOff", glm::cos(glm::radians(17.5f)));
+
+    modelShader->set_float("spotLight.constant", 1.0f);
+    modelShader->set_float("spotLight.linear", 0.045f);
+    modelShader->set_float("spotLight.quadratic", 0.0075f);
+    if(spotlightEnabled) {
+        modelShader->set_vec3("spotLight.ambient", glm::vec3(0.2f,0.2f,0.1f));
+        modelShader->set_vec3("spotLight.diffuse", glm::vec3(1.0f,1.0f,0.8f));
+        modelShader->set_vec3("spotLight.specular", glm::vec3(1.0f,1.0f,1.0f));
+    } else {
+        modelShader->set_vec3("spotLight.ambient", glm::vec3(0.0f));
+        modelShader->set_vec3("spotLight.diffuse", glm::vec3(0.0f));
+        modelShader->set_vec3("spotLight.specular", glm::vec3(0.0f));
+    }
+    modelShader->set_float("material_shininess", 30.0f);
+    modelShader->set_vec3("viewPos", graphics->camera()->Position);
+
+}
+
 void MainController::draw() {
+
+        //setup_lighting();
         draw_island();
         draw_tree();
         draw_lamp();
+        draw_skybox();
     }
 void MainController::end_draw() {
         auto platform = engine::core::Controller::get<engine::platform::PlatformController>();

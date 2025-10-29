@@ -14,15 +14,22 @@ class MainController : public engine::core::Controller {
     void draw_island();
     void draw_tree();
     void draw_lamp();
+    void draw_skybox();
     void update() override;
     void update_camera();
+    void setup_lighting();
     void begin_draw() override;
     void draw() override;
     void end_draw() override;
+    void update_spotlight();
+
+private:
+    bool spotlightEnabled = false;
+
 public:
     std::string_view name() const override {
       return "app:MainControler";
-    };
+    }
 };
 }
 #endif //MAINCONTROLER_HPP

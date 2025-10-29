@@ -9,6 +9,9 @@
       },
       "lampa":{
         "path" : "lampa/scene.gltf"
+      },
+      "statua": {
+        "path" : "statua/scene.gltf"
       }
     }
   },
