@@ -119,6 +119,32 @@ void MainController::draw_skybox() {
 
     }
 
+void MainController::draw_statue() {
+        if(!spotlightEnabled) {
+           return;
+        }
+        auto resources = engine::core::Controller::get<engine::resources::ResourcesController>();
+        auto graphics = engine::core::Controller::get<engine::graphics::GraphicsController>();
+
+        engine::resources::Model *statuaModel = resources->model("statua");
+        engine::resources::Shader *shader = resources->shader("basic");
+
+        shader->use();
+
+        setup_lighting();
+
+        shader->set_mat4("projection", graphics->projection_matrix());
+        shader->set_mat4("view", graphics->camera()->view_matrix());
+
+        glm::mat4 modelStatua = glm::mat4(1.0f);
+        modelStatua =glm::translate(modelStatua, glm::vec3(-5.0f,0.3f,-4.5f));
+        //modelLampa = glm::rotate(modelLampa, glm::radians(-90.0f), glm::vec3(1.0f,0.0f,0.0f));
+        modelStatua = glm::scale(modelStatua, glm::vec3(0.2f));
+        shader->set_mat4("model", modelStatua);
+        statuaModel->draw(shader);
+    }
+
+
 
 void MainController::update_camera() {
        auto gui_controller = engine::core::Controller::get<GuiController>();
@@ -150,10 +176,20 @@ void MainController::update_spotlight() {
             spotlightEnabled = !spotlightEnabled;
         }
     }
+void MainController::update_spotlight_color() {
+        auto platform = engine::core::Controller::get<engine::platform::PlatformController>();
+        if(platform->key(engine::platform::KeyId::KEY_B).state() == engine::platform::Key::State::JustPressed) {
+            spotlightBlueComponent += 0.1f;
+            if(spotlightBlueComponent > 3.0f) {
+                spotlightBlueComponent = 0.2f;
+            }
+        }
+    }
 
 
 void MainController::update() {
         update_camera();
+        update_spotlight_color();
         update_spotlight();
     }
 
@@ -171,7 +207,7 @@ void MainController::setup_lighting() {
     modelShader->use();
 
     modelShader->set_vec3("dirLight.direction", glm::vec3(0.8f,-1.0f,1.0f));
-    modelShader->set_vec3("dirLight.ambient", glm::vec3(0.3f,0.3f,0.3f)*1.0f);
+    modelShader->set_vec3("dirLight.ambient", glm::vec3(0.3f,0.3f,0.3f)*2.0f);
     modelShader->set_vec3("dirLight.diffuse", glm::vec3(0.4f,0.4f,0.4f)*0.5f);
     modelShader->set_vec3("dirLight.specular", glm::vec3(0.8f,0.3f,0.3f));
 
@@ -184,9 +220,9 @@ void MainController::setup_lighting() {
     modelShader->set_float("spotLight.linear", 0.045f);
     modelShader->set_float("spotLight.quadratic", 0.0075f);
     if(spotlightEnabled) {
-        modelShader->set_vec3("spotLight.ambient", glm::vec3(0.2f,0.2f,0.1f));
-        modelShader->set_vec3("spotLight.diffuse", glm::vec3(1.0f,1.0f,0.8f));
-        modelShader->set_vec3("spotLight.specular", glm::vec3(1.0f,1.0f,1.0f));
+        modelShader->set_vec3("spotLight.ambient", glm::vec3(0.2f,0.2f,spotlightBlueComponent));
+        modelShader->set_vec3("spotLight.diffuse", glm::vec3(1.0f,1.0f,spotlightBlueComponent));
+        modelShader->set_vec3("spotLight.specular", glm::vec3(1.0f,1.0f,spotlightBlueComponent));
     } else {
         modelShader->set_vec3("spotLight.ambient", glm::vec3(0.0f));
         modelShader->set_vec3("spotLight.diffuse", glm::vec3(0.0f));
@@ -203,6 +239,7 @@ void MainController::draw() {
         draw_island();
         draw_tree();
         draw_lamp();
+        draw_statue();
         draw_skybox();
     }
 void MainController::end_draw() {
