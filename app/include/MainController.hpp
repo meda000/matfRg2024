@@ -24,10 +24,17 @@ class MainController : public engine::core::Controller {
     void end_draw() override;
     void update_spotlight();
     void draw_statue();
+    void update_statue();
 
 private:
     bool spotlightEnabled = false;
     float spotlightBlueComponent = 0.1f;
+    float spotlightRedComponentAmb = 0.1f;
+    float spotlightRedComponentDif = 0.1f;
+
+    bool statueMove = false;
+    float statueOffset = 0.0f;
+    float statueMoveTimer = 0.0f;
 
 public:
     std::string_view name() const override {

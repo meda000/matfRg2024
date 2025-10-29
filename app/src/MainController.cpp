@@ -137,7 +137,7 @@ void MainController::draw_statue() {
         shader->set_mat4("view", graphics->camera()->view_matrix());
 
         glm::mat4 modelStatua = glm::mat4(1.0f);
-        modelStatua =glm::translate(modelStatua, glm::vec3(-5.0f,0.3f,-4.5f));
+        modelStatua =glm::translate(modelStatua, glm::vec3(-5.0f + statueOffset,0.3f,-4.5f));
         //modelLampa = glm::rotate(modelLampa, glm::radians(-90.0f), glm::vec3(1.0f,0.0f,0.0f));
         modelStatua = glm::scale(modelStatua, glm::vec3(0.2f));
         shader->set_mat4("model", modelStatua);
@@ -174,6 +174,12 @@ void MainController::update_spotlight() {
         auto platform = engine::core::Controller::get<engine::platform::PlatformController>();
         if(platform->key(engine::platform::KeyId::KEY_L).state() == engine::platform::Key::State::JustPressed) {
             spotlightEnabled = !spotlightEnabled;
+
+            if(!spotlightEnabled) {
+                statueOffset = 0.0f;
+                statueMove = false;
+                statueMoveTimer = 0.0f;
+            }
         }
     }
 void MainController::update_spotlight_color() {
@@ -184,6 +190,28 @@ void MainController::update_spotlight_color() {
                 spotlightBlueComponent = 0.2f;
             }
         }
+    if(platform->key(engine::platform::KeyId::KEY_R).state() == engine::platform::Key::State::JustPressed) {
+        spotlightRedComponentAmb += 0.1f;
+        spotlightRedComponentDif += 0.1f;
+        if(spotlightRedComponentAmb > 3.0f || spotlightRedComponentDif > 3.0f) {
+            spotlightRedComponentAmb = 0.2f;
+            spotlightRedComponentDif = 0.2f;
+        }
+        statueMove = true;
+        statueMoveTimer = 0.0f;
+    }
+    }
+
+void MainController::update_statue() {
+        if(statueMove) {
+            auto platform = engine::core::Controller::get<engine::platform::PlatformController>();
+            statueMoveTimer += platform->dt();
+
+            if(statueMoveTimer > 1.0f) {
+                statueOffset += 0.07f;
+                statueMove = false;
+            }
+        }
     }
 
 
@@ -191,6 +219,7 @@ void MainController::update() {
         update_camera();
         update_spotlight_color();
         update_spotlight();
+        update_statue();
     }
 
 
@@ -220,13 +249,15 @@ void MainController::setup_lighting() {
     modelShader->set_float("spotLight.linear", 0.045f);
     modelShader->set_float("spotLight.quadratic", 0.0075f);
     if(spotlightEnabled) {
-        modelShader->set_vec3("spotLight.ambient", glm::vec3(0.2f,0.2f,spotlightBlueComponent));
-        modelShader->set_vec3("spotLight.diffuse", glm::vec3(1.0f,1.0f,spotlightBlueComponent));
+        modelShader->set_vec3("spotLight.ambient", glm::vec3(spotlightRedComponentAmb,0.2f,spotlightBlueComponent));
+        modelShader->set_vec3("spotLight.diffuse", glm::vec3(spotlightRedComponentDif,1.0f,spotlightBlueComponent));
         modelShader->set_vec3("spotLight.specular", glm::vec3(1.0f,1.0f,spotlightBlueComponent));
     } else {
         modelShader->set_vec3("spotLight.ambient", glm::vec3(0.0f));
         modelShader->set_vec3("spotLight.diffuse", glm::vec3(0.0f));
         modelShader->set_vec3("spotLight.specular", glm::vec3(0.0f));
+        spotlightRedComponentAmb = 0.1f;
+        spotlightRedComponentDif = 0.1f;
     }
     modelShader->set_float("material_shininess", 30.0f);
     modelShader->set_vec3("viewPos", graphics->camera()->Position);
