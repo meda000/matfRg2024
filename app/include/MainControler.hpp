@@ -12,6 +12,8 @@ class MainControler : public engine::core::Controller {
     void initialize() override;
     bool loop() override;
     void draw_island();
+    void update() override;
+    void update_camera();
     void begin_draw() override;
     void draw() override;
     void end_draw() override;
