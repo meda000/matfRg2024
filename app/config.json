@@ -3,6 +3,12 @@
     "models": {
       "ostrvo": {
         "path" : "ostrvo/scene.gltf"
+      },
+      "tree": {
+        "path" : "tree/scene.gltf"
+      },
+      "lampa":{
+        "path" : "lampa/scene.gltf"
       }
     }
   },
