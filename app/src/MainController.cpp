@@ -9,6 +9,7 @@
 #include "engine/platform/PlatformController.hpp"
 #include "engine/resources/ResourcesController.hpp"
 #include "spdlog/spdlog.h"
+#include "engine/graphics/Framebuffer.hpp"
 
 #include <engine/graphics/GraphicsController.hpp>
 
@@ -39,6 +40,8 @@ void MainController::initialize() {
 
     auto statueController = engine::core::Controller::get<StatueController>();
     statueController->initialize();
+
+    fb.setup(platform->window()->width(), platform->window()->height());
 }
 
 
@@ -218,6 +221,12 @@ void MainController::update_spotlight_color() {
     //        }
   //      }
    // }
+void MainController::update_pp() {
+        auto platform = engine::core::Controller::get<engine::platform::PlatformController>();
+    if(platform->key(engine::platform::KeyId::KEY_P).state() == engine::platform::Key::State::JustPressed) {
+        toggle_postprocessing();
+    }
+}
 
 
 void MainController::update() {
@@ -225,11 +234,18 @@ void MainController::update() {
         update_spotlight_color();
         //update_spotlight();
         //update_statue();
-    }
+        update_pp();
+}
 
 
 void MainController::begin_draw() {
-        engine::graphics::OpenGL::clear_buffers();
+        //engine::graphics::OpenGL::clear_buffers();
+        //fb.begin_rendering();
+    if(postProcessingEnabled) {
+        fb.begin_rendering();
+    } else {
+        fb.clear_default_framebuffer();
+    }
     }
 void MainController::setup_lighting() {
     auto resources = engine::core::Controller::get<engine::resources::ResourcesController>();
@@ -283,7 +299,19 @@ void MainController::draw() {
         draw_skybox();
     }
 void MainController::end_draw() {
+    if(postProcessingEnabled) {
+        auto resources = engine::core::Controller::get<engine::resources::ResourcesController>();
+        engine::resources::Shader *screenShader = resources->shader("postprocessing");
+        fb.end_rendering(screenShader);
+    }
         auto platform = engine::core::Controller::get<engine::platform::PlatformController>();
        platform->swap_buffers();
     }
+void MainController::toggle_postprocessing() {
+        postProcessingEnabled = !postProcessingEnabled;
+    spdlog::info(postProcessingEnabled ? "PP ON" : "PP OFF");
+    }
+
+
+
 }
