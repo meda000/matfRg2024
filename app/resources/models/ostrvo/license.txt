@@ -1,0 +1,11 @@
+Model Information:
+* title:	Skomer Island
+* source:	https://sketchfab.com/3d-models/skomer-island-33f75dec169049edb59d171529efb042
+* author:	sionwill (https://sketchfab.com/sionwill)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Skomer Island" (https://sketchfab.com/3d-models/skomer-island-33f75dec169049edb59d171529efb042) by sionwill (https://sketchfab.com/sionwill) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

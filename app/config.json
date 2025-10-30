@@ -1,11 +1,23 @@
 {
   "resources": {
     "models": {
+      "ostrvo": {
+        "path" : "ostrvo/scene.gltf"
+      },
+      "tree": {
+        "path" : "tree/scene.gltf"
+      },
+      "lampa":{
+        "path" : "lampa/scene.gltf"
+      },
+      "statua": {
+        "path" : "statua/scene.gltf"
+      }
     }
   },
   "window": {
-    "height": 600,
-    "title": "Hello, window!",
-    "width": 800
+    "height": 1600,
+    "title": "Ostrvo",
+    "width": 1600
   }
 }
